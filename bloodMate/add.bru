@@ -1,0 +1,22 @@
+meta {
+  name: add
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:5000/api/donors/all
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Nandhu",
+    "age": 21,
+    "blood_group": "O+",
+    "city": "Salem"
+  }
+  
+  
+}

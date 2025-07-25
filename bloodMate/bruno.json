@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "bloodMate",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
