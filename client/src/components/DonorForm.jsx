@@ -1,19 +1,40 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { getAuth } from "firebase/auth";
 import { useNavigate } from 'react-router-dom';
 import '../index.css';
 
 function DonorForm() {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     age: "",
     blood_group: "",
-    city: ""
+    city: "",
+    firebase_uid: user ? user.uid : ""
   });
 
   const [isReviewing, setIsReviewing] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
+  const [alreadyDonor, setAlreadyDonor] = useState(false);
+
+  // Check if donor already exists for this user
+  useEffect(() => {
+    if (user && user.uid) {
+      fetch(`http://localhost:5000/api/donors/by-uid/${user.uid}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.id) {
+            setAlreadyDonor(true);
+            // Optionally redirect to QR page:
+            navigate(`/qr/${data.id}`);
+          }
+        });
+    }
+  }, [user, navigate]);
 
   const handleReview = (e) => {
     e.preventDefault();
@@ -46,22 +67,24 @@ function DonorForm() {
         body: JSON.stringify(formData)
       });
 
-      console.log("Response status:", response.status);
+      const data = await response.json();
 
       if (response.ok) {
         setSuccessMessage("✅ Donor registered successfully!");
-
         setFormData({
           name: "",
           age: "",
           blood_group: "",
-          city: ""
+          city: "",
+          firebase_uid: user ? user.uid : ""
         });
 
-        // Hide message after 5 seconds
-        setTimeout(() => setSuccessMessage(""), 5000);
+        // Redirect to QR page after 2 seconds
+        setTimeout(() => {
+          navigate(`/qr/${data.id}`);
+        }, 2000);
       } else {
-        alert("Error registering donor");
+        alert(data.message || "Error registering donor");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -70,6 +93,20 @@ function DonorForm() {
       setIsReviewing(false);
     }
   };
+
+  if (alreadyDonor) {
+    return (
+      <div className="container">
+        <h2>You have already registered as a donor.</h2>
+        <button
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          onClick={() => navigate('/')}
+        >
+          Go to Home
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>

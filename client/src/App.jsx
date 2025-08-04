@@ -5,6 +5,9 @@ import SignupPage from "./pages/SignupPage";
 import LoginPage from "./pages/LoginPage";
 import DonorForm from "./components/DonorForm";
 import ProtectedRoute from "./components/ProtectedRoute";
+import QrPage from './pages/QrPage';
+
+
 // ✅ THIS FIXES YOUR ERROR
 
 function App() {
@@ -15,6 +18,7 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/donor-form" element={< ProtectedRoute><DonorForm /></ProtectedRoute>} />
+        <Route path="/qr/:id" element={<QrPage />} />
         
       </Routes>
     </Router>

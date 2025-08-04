@@ -1,20 +1,11 @@
-import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
+import useAuthStatus from "../hooks/useAuthStatus";
 
 const Home = () => {
   const navigate = useNavigate();
   const auth = getAuth();
-  const [user, setUser] = useState(auth.currentUser);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [auth]);
+  const { loggedIn, checkingStatus, user } = useAuthStatus();
 
   const handleLogout = () => {
     signOut(auth)
@@ -26,11 +17,11 @@ const Home = () => {
       });
   };
 
-  if (loading) {
+  if (checkingStatus) {
     return <div className="p-6 text-center text-lg">Loading...</div>;
   }
 
-  if (!user) {
+  if (!loggedIn) {
     navigate("/login");
     return null;
   }
@@ -54,6 +45,18 @@ const Home = () => {
           onClick={() => navigate("/profile")}
         >
           View Profile
+        </button>
+        <button
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          onClick={() => navigate("/qr/1")}
+        > 
+          View QR Code  
+        </button>
+                <button
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          onClick={() => navigate("/signup")}
+        > 
+         Sign Up 
         </button>
         <button
           className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
