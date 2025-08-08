@@ -1,16 +1,34 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const ProtectedRoute = ({ children }) => {
-const auth = getAuth();
-const user = auth.currentUser;
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const auth = getAuth();
 
-if (!user) {
-return <Navigate to="/login" replace />;
-}
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
 
-return children;
+    return () => unsubscribe();
+  }, [auth]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-red-50">
+        <p className="text-red-700 text-lg">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 };
 
 export default ProtectedRoute;

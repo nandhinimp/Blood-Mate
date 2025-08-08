@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { auth } from "../firebase/firebaseConfig";
 import { FiMail, FiLock, FiUser, FiPhone } from "react-icons/fi";
@@ -21,25 +21,93 @@ const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const passwordStrength = getPasswordStrength(password);
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setErrorMsg("");
+    setIsLoading(true);
+
+    // Validation
+    if (!fullName.trim()) {
+      setErrorMsg("Full name is required.");
+      setIsLoading(false);
+      return;
+    }
+    if (!email.trim()) {
+      setErrorMsg("Email is required.");
+      setIsLoading(false);
+      return;
+    }
+    if (!phone.trim()) {
+      setErrorMsg("Phone number is required.");
+      setIsLoading(false);
+      return;
+    }
+    if (!password) {
+      setErrorMsg("Password is required.");
+      setIsLoading(false);
+      return;
+    }
+    if (password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters long.");
+      setIsLoading(false);
+      return;
+    }
     if (!agreed) {
       setErrorMsg("You must agree to the Terms and Privacy Policy.");
+      setIsLoading(false);
       return;
     }
     if (password !== confirmPassword) {
       setErrorMsg("Passwords do not match.");
+      setIsLoading(false);
       return;
     }
+
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      console.log("Creating user with email:", email);
+      
+      // Create user account
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("User created successfully:", userCredential.user);
+      
+      // Update user profile with display name
+      await updateProfile(userCredential.user, {
+        displayName: fullName
+      });
+      console.log("Profile updated successfully");
+      
+      // Navigate to donor form
+      console.log("Navigating to donor form...");
       navigate("/donor-form");
+      
     } catch (error) {
-      setErrorMsg(error.message);
+      console.error("Signup error:", error);
+      let errorMessage = "An error occurred during signup.";
+      
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          errorMessage = "This email is already registered.";
+          break;
+        case "auth/invalid-email":
+          errorMessage = "Please enter a valid email address.";
+          break;
+        case "auth/weak-password":
+          errorMessage = "Password is too weak. Please choose a stronger password.";
+          break;
+        case "auth/network-request-failed":
+          errorMessage = "Network error. Please check your internet connection.";
+          break;
+        default:
+          errorMessage = error.message;
+      }
+      
+      setErrorMsg(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -153,8 +221,8 @@ const SignupPage = () => {
           </label>
         </div>
         {errorMsg && <p className="error">{errorMsg}</p>}
-        <button type="submit" className="submit-btn">
-          Create Account
+        <button type="submit" className="submit-btn" disabled={isLoading}>
+          {isLoading ? "Creating Account..." : "Create Account"}
         </button>
         <div className="footer">
           Already have an account?{" "}
@@ -313,11 +381,15 @@ const SignupPage = () => {
           cursor: pointer;
           animation: fadeInUp 1.1s;
         }
-        .submit-btn:hover {
+        .submit-btn:hover:not(:disabled) {
           background: #dc2626;
         }
-        .submit-btn:active {
+        .submit-btn:active:not(:disabled) {
           transform: scale(0.97);
+        }
+        .submit-btn:disabled {
+          background: #9ca3af;
+          cursor: not-allowed;
         }
         .footer {
           text-align: center;
