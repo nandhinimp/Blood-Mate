@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
 import useAuthStatus from "../hooks/useAuthStatus";
+import { useEffect } from "react";
 import { 
   Heart, 
   User, 
@@ -25,6 +26,13 @@ const Home = () => {
   const auth = getAuth();
   const { loggedIn, checkingStatus, user } = useAuthStatus();
 
+  // Fix the navigation issue by using useEffect
+  useEffect(() => {
+    if (!checkingStatus && !loggedIn) {
+      navigate("/login");
+    }
+  }, [loggedIn, checkingStatus, navigate]);
+
   const handleLogout = () => {
     signOut(auth)
       .then(() => {
@@ -47,8 +55,7 @@ const Home = () => {
   }
 
   if (!loggedIn) {
-    navigate("/login");
-    return null;
+    return null; // Let useEffect handle navigation
   }
 
   return (

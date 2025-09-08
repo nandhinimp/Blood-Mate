@@ -27,7 +27,7 @@ navigate("/donor-form");
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      navigate("/");
+      navigate("/donor-form");
     } catch (error) {
       setErrorMsg(error.message);
     }

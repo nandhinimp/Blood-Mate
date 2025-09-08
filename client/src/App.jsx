@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import axios from "axios";
+// Remove this unused import: import axios from "axios";
 import Home from "./pages/Home"; 
 import SignupPage from "./pages/SignupPage";
 import LoginPage from "./pages/LoginPage";
@@ -8,9 +8,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import QrPage from './pages/QrPage';
 import Profile from "./pages/ProfilePage";
 
-
-// ✅ THIS FIXES YOUR ERROR
-
 function App() {
   return (
     <Router>
@@ -18,7 +15,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/donor-form" element={< ProtectedRoute><DonorForm /></ProtectedRoute>} />
+        <Route path="/donor-form" element={<ProtectedRoute><DonorForm /></ProtectedRoute>} />
         <Route path="/qr/:id" element={<QrPage />} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       </Routes>
