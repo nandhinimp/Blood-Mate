@@ -2,6 +2,7 @@ require('dotenv').config({ path: __dirname + '/.env' }); // Load environment var
 const express = require("express");
 const cors = require("cors");
 const donorRoutes = require("./routes/donorRoutes");
+const ocrRoutes = require("./routes/ocr");
 require('./db'); // ✅ Trigger MySQL connection
 
 const app = express();
@@ -34,6 +35,7 @@ app.get("/", (req, res) => {
 
 // ✅ Use the actual donor route
 app.use("/api/donors", donorRoutes);
+app.use("/api/ocr", ocrRoutes);
 
 // Start the server
 app.listen(PORT, () => {

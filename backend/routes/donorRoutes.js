@@ -1,6 +1,55 @@
+
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const multer = require('multer');
+const path = require('path');
+const Tesseract = require('tesseract.js');
+const fs = require('fs');
+
+// File upload and OCR integration
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../uploads'));
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage: storage });
+
+// POST: Add donor with file upload and OCR
+router.post('/add-with-file', upload.single('medicalReport'), async (req, res) => {
+  const { name, age, bloodgroup, city, firebase_uid, status = 'Available' } = req.body;
+  let ocrText = null;
+  let fileName = null;
+  if (req.file) {
+    fileName = req.file.filename;
+    const ext = path.extname(fileName).toLowerCase();
+    if ([".png", ".jpg", ".jpeg", ".bmp", ".tiff"].includes(ext)) {
+      try {
+        const result = await Tesseract.recognize(
+          req.file.path,
+          'eng',
+          { logger: m => console.log(m) }
+        );
+        ocrText = result.data.text;
+      } catch (err) {
+        return res.status(500).json({ message: 'OCR failed', details: err.message });
+      }
+    }
+  }
+  // Insert donor with file and OCR text
+  const query = `INSERT INTO donors (name, age, bloodgroup, city, firebase_uid, status, medical_report, ocr_text) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+  db.query(query, [name, age, bloodgroup, city, firebase_uid, status, fileName, ocrText], (err, result) => {
+    if (err) {
+      console.error('Error inserting donor with file:', err);
+      return res.status(500).json({ message: 'Database error' });
+    } else {
+      return res.status(201).json({ message: 'Donor added successfully', id: result.insertId, file: fileName, ocr: ocrText });
+    }
+  });
+});
 
 // POST: Add donor (prevent duplicate for same firebase_uid)
 router.post('/add', (req, res) => {
