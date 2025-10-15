@@ -111,12 +111,13 @@ export default function DonorForm() {
       if (medicalFile) fd.append('medicalReport', medicalFile); // <--- key must match server upload.single('medicalReport')
 
       // Use fetch (browser handles Content-Type)
+      // send multipart/form-data to backend
       const res = await fetch('http://localhost:5000/api/donors/add-with-file', {
         method: 'POST',
         body: fd
       });
 
-      // if you want progress: use XMLHttpRequest instead (fetch has no progress in browsers)
+      // fetch doesn't provide upload progress in browsers; use XHR if you need it.
       const data = await res.json();
 
       if (res.ok) {

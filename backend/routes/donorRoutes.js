@@ -1,23 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-const multer = require('multer');
 const path = require('path');
 const Tesseract = require('tesseract.js');
 const fs = require('fs');
-const pdf = require('pdf-poppler');   
-
-// File upload and OCR integration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../uploads'));
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-const upload = multer({ storage: storage });
-
+const pdf = require('pdf-poppler');
+const upload = require('../middleware/upload');
 
 // AI-based eligibility check
 
